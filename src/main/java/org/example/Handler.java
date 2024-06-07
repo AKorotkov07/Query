@@ -6,23 +6,18 @@ import java.util.Map;
 
 class RequestHandler {
 
-	public static void handleClientRequest(String requestLine, PrintWriter out) {
-		String[] requestParts = requestLine.split(" ");
-		String path = requestParts[1];
-		String[] pathParts = path.split("\\?");
-		String filePath = pathParts[0];
-		String queryString = pathParts.length > 1 ? pathParts[1] : null;
+	public static void handleClientRequest(String requestLine, PrintWriter out, Map<String, String> headers, String httpMethod, String httpVersion) {
+		Request request = new Request(requestLine, headers, httpMethod, httpVersion);
 
-		File file = new File(filePath);
+		File file = new File("." + request.getPath()); // Добавлено "." для текущего каталога
 		if (file.exists() && !file.isDirectory()) {
 			sendFileContent(file, out);
 		} else {
 			sendNotFound(out);
 		}
 
-		if (queryString != null) {
-			Map<String, String> queryParams = QueryParamParser.parse(queryString);
-			handleQueryParams(queryParams, out);
+		if (!request.getQueryParams().isEmpty()) {
+			handleQueryParams(request.getQueryParams(), out);
 		}
 	}
 
